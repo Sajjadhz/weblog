@@ -1,0 +1,61 @@
+{% extends 'blog/base.html' %}
+{% load comment_tags %}  {# Loading the template tag #}
+{% load ratings %}
+{% load base_tags %}
+ {% load humanize %}
+{% block costum-header %}
+   <link rel="stylesheet" type="text/css" href="red.css">
+{% endblock %}
+{% block title %} | {{ object.title }}{% endblock %}    {# djanog uses object as context name in detail views and object_list in list views #}
+
+{% block main %}
+    <!-- Page Header -->
+  <header class="masthead" style="background-image: url('{{ article.thumbnail.url}}')">
+    <div class="overlay"></div>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+          <div class="site-heading">
+            <h1>{{ object.title }}</h1>
+                {% if article.is_special %}
+                    <span class="badge badge-danger">ویژه</span>
+                {% endif %}
+{#              <time>{{ object.jpublish}}</time>#}
+              <time>{{ object.publish | naturaltime }}</time>
+                <div>{% ratings object %}</div>
+                <div>بازدیدها: {{object.hits.count}}</div>
+            <span class="subheading">{{ object.title }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+    <!-- Post Content -->
+    <article>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto text-justify">
+            <aside>
+              {% popular_articles %}
+              {% hot_articles %}
+            </aside>
+            {% if object.is_special %}
+                {% if user.is_authenticated and user.is_special_user or user == object.author or user.is_superuser %}
+                    {{ object.description|linebreaks|safe }}  {# linebreaks breaks lines as break in database content #}
+                {% else %}
+                    {{ article.description|striptags|truncatewords:30}}
+                    <p class="alert alert-warning">این مقاله ویژه است و برای مشاهده آن باید <a class="alert alert-link" href="#">اشتراک ویژه</a> تهیه کنید.</p>
+                {% endif %}
+            {% else %}
+                {{ object.description|linebreaks|safe }}  {# linebreaks breaks lines as break in database content #}
+            {% endif %}
+
+            {% render_comments object request %}  {# Render all the comments belong to the passed object "obj" #}
+
+            {% include_bootstrap %} {# Include bootstrap 4.1.1 - remove this line if BS is already used in your project #}
+        </div>
+      </div>
+    </div>
+  </article>
+{% endblock %}
